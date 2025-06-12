@@ -1,0 +1,307 @@
+{
+  "number": 10,
+  "title": "Data Pipeline Health Monitor",
+  "slug": "data-pipeline-health-monitor",
+  "start": "2025-06-12",
+  "end": "2025-06-29",
+  "repo": "sherozshaikh/pipelinescope",
+  "branch": "main",
+  "license": "MIT",
+  "note": "Pipeline performance profiling and monitoring; not a complete freshness/volume/distribution-drift service.",
+  "sha": "62a09bbc6b180ea7b6ac47d39a94660c5b931420",
+  "archive_sha256": "5a4d924c224db86c44701c16e078b3c77d9211ff0d91582d44d4e534893005ed",
+  "imported_at": "2026-10-28T21:31:32.860922+00:00",
+  "history": "Reconstructed import history; dates are not dates of original development.",
+  "upstream_files": {
+    "upstream/.github/workflows/tests.yml": {
+      "sha256": "2ff0e54728c328ac6360d20165b22ca89b42cebddcd91398f57de5fdbe572ccc",
+      "mode": "100644",
+      "bytes": 759
+    },
+    "upstream/.gitignore": {
+      "sha256": "2473815951cfc721e743c7a6c5b635dbd485ca6960f52fb75d113122047ac606",
+      "mode": "100644",
+      "bytes": 4698
+    },
+    "upstream/LICENSE": {
+      "sha256": "7ee7763ec74830c1424ca8deed4e305352ebb86d3fc622c89742bd118169a76d",
+      "mode": "100644",
+      "bytes": 1069
+    },
+    "upstream/Makefile": {
+      "sha256": "257f41d79a0f1ce18188c5be9c4c80d815426d3dbb7ed311ba531ea441ed23d6",
+      "mode": "100644",
+      "bytes": 116
+    },
+    "upstream/README.md": {
+      "sha256": "10e2d76ad559cf3d4c851976fc915afbe0f8aaf66fc64a8e06b3200f28fea783",
+      "mode": "100644",
+      "bytes": 13438
+    },
+    "upstream/examples/complex_graph/.pipelinescope.yaml": {
+      "sha256": "ff3205876cfe6c07b086da17dc4b4126cdfc925ce680fd1766603e7011ee6d7d",
+      "mode": "100644",
+      "bytes": 402
+    },
+    "upstream/examples/complex_graph/logging.yaml": {
+      "sha256": "f8f79335e3653e81cd4c93d382e0443d9531a5fa6779b738a8150ed55214d493",
+      "mode": "100644",
+      "bytes": 334
+    },
+    "upstream/examples/complex_graph/main.py": {
+      "sha256": "21029ff760b0e30c82b1412e3574ec25c2062a82862b9bc92949dce37afd59f2",
+      "mode": "100644",
+      "bytes": 858
+    },
+    "upstream/examples/complex_graph/pipeline.py": {
+      "sha256": "55ec005a8b89061fd84a41b56b60b65d7ce878f10749caf39449413d8f9a0639",
+      "mode": "100644",
+      "bytes": 1708
+    },
+    "upstream/examples/nested_calls/.pipelinescope.yaml": {
+      "sha256": "be2273486a2a2543e5238696b698abce239c842f49a3b9d4e7d53d29dd592c48",
+      "mode": "100644",
+      "bytes": 401
+    },
+    "upstream/examples/nested_calls/logging.yaml": {
+      "sha256": "f8f79335e3653e81cd4c93d382e0443d9531a5fa6779b738a8150ed55214d493",
+      "mode": "100644",
+      "bytes": 334
+    },
+    "upstream/examples/nested_calls/main.py": {
+      "sha256": "ebcae062dce62d2a2094d4cae04cc9328841b379c38f461f47283252f3a70d6e",
+      "mode": "100644",
+      "bytes": 835
+    },
+    "upstream/examples/nested_calls/pipeline.py": {
+      "sha256": "f8645eeb8ac50e528b49687ad97ce5fdfb5f058cf1b85258605e2387e6d01ef9",
+      "mode": "100644",
+      "bytes": 991
+    },
+    "upstream/examples/simple_linear/.pipelinescope.yaml": {
+      "sha256": "c7b8149c944bc7b7770281ac99962cf7c921f36a4a21488d999d5abcf5e921ba",
+      "mode": "100644",
+      "bytes": 402
+    },
+    "upstream/examples/simple_linear/logging.yaml": {
+      "sha256": "f8f79335e3653e81cd4c93d382e0443d9531a5fa6779b738a8150ed55214d493",
+      "mode": "100644",
+      "bytes": 334
+    },
+    "upstream/examples/simple_linear/main.py": {
+      "sha256": "e0a158ed285580478385abdf5933802de77da05c179c1bac0d5b702bb50e1342",
+      "mode": "100644",
+      "bytes": 774
+    },
+    "upstream/examples/simple_linear/pipeline.py": {
+      "sha256": "4f1c561313a1443bb9eba4b8b13fffca30f9e5a791a2bce34a9e2d9e1ed48ad8",
+      "mode": "100644",
+      "bytes": 1150
+    },
+    "upstream/pipelinescope/__init__.py": {
+      "sha256": "c3d36332ce5a2001c16806215a6a038bb127be940aa2d82a3dd5425748d1b1c0",
+      "mode": "100644",
+      "bytes": 103
+    },
+    "upstream/pipelinescope/cli/__init__.py": {
+      "sha256": "c9c2aaae4c6f6e4939df1d4b12240986d4955a5723281d0850b3df67e2cba615",
+      "mode": "100644",
+      "bytes": 100
+    },
+    "upstream/pipelinescope/cli/diff.py": {
+      "sha256": "6f396cbd3ea52a3635aa4341f6c94b75e05f2febce16326043e34e5231acba39",
+      "mode": "100644",
+      "bytes": 13411
+    },
+    "upstream/pipelinescope/core/__init__.py": {
+      "sha256": "3f948e74ed43fdd1156aadd300531e6c51f0ed758b81b21558377b0b57bebda9",
+      "mode": "100644",
+      "bytes": 462
+    },
+    "upstream/pipelinescope/core/config.py": {
+      "sha256": "668468187c2bc494be8bd3240a1fde7e4c75b4e8a02007156852535a8ca5f633",
+      "mode": "100644",
+      "bytes": 4065
+    },
+    "upstream/pipelinescope/core/entrypoint.py": {
+      "sha256": "b3384202cd31773e5e5307d5558b17881ff9dee08e7213910d62019b1da9edfc",
+      "mode": "100644",
+      "bytes": 4640
+    },
+    "upstream/pipelinescope/core/extrapolation.py": {
+      "sha256": "4cd87da276f7add97888d6d835a5c4225dd31504b5a13bc579450fbbc1ec4b3c",
+      "mode": "100644",
+      "bytes": 2179
+    },
+    "upstream/pipelinescope/core/profiler.py": {
+      "sha256": "0f91bb7041fe55181ffbb9e943f93a3592940a8fd25d5c60a1864b326be2b0b6",
+      "mode": "100644",
+      "bytes": 7427
+    },
+    "upstream/pipelinescope/core/resource_monitor.py": {
+      "sha256": "3a3ebfd90b130356c23d1e1d6bafb6239b5af2579058359db8dde0e35073fb62",
+      "mode": "100644",
+      "bytes": 1690
+    },
+    "upstream/pipelinescope/core/stats.py": {
+      "sha256": "123be4ad5511b9a046b61284a0cc3f5c8d0e9f74b398a41d5afd84d8a8ec482d",
+      "mode": "100644",
+      "bytes": 4902
+    },
+    "upstream/pipelinescope/data/__init__.py": {
+      "sha256": "57fdb692a7af06f0e48e0195a1453959c55c399d0f29a1df9738ef2b8991e727",
+      "mode": "100644",
+      "bytes": 133
+    },
+    "upstream/pipelinescope/data/serializer.py": {
+      "sha256": "bb395746285de2e585be69d89d66d678c6828c33bff4c3fd3da1e5ed98b5482d",
+      "mode": "100644",
+      "bytes": 2804
+    },
+    "upstream/pipelinescope/prompts/__init__.py": {
+      "sha256": "63c42179d72263c974023a4a3caaca83c99b66b9572e569d991b3a8281569c4a",
+      "mode": "100644",
+      "bytes": 139
+    },
+    "upstream/pipelinescope/prompts/llm_optimize.py": {
+      "sha256": "fcb8c5c442b4ba0e770abb6ca844dc1191d24dbdda11e59c4c27db010268ffae",
+      "mode": "100644",
+      "bytes": 3790
+    },
+    "upstream/pipelinescope/reporting/__init__.py": {
+      "sha256": "7c30492ffc20a509048960ab8242521abf4d82cd78067b3ef24d4d92b4087c6d",
+      "mode": "100644",
+      "bytes": 305
+    },
+    "upstream/pipelinescope/reporting/analyzer.py": {
+      "sha256": "9cfe5d31a57942737a8263c33619e8dcfd4a4f926cbeab34ade71f3532e54cc2",
+      "mode": "100644",
+      "bytes": 8161
+    },
+    "upstream/pipelinescope/reporting/generator.py": {
+      "sha256": "9d80ce86b25105b93e0412bc0bbb341ebaf05082f86a09eeb67a44fda46a5b6a",
+      "mode": "100644",
+      "bytes": 3826
+    },
+    "upstream/pipelinescope/reporting/templates/summary.html": {
+      "sha256": "72f6ca8d58cb7fc5c51c7d45473c6a98067c5fa79c06f8b11a0e234b3a974705",
+      "mode": "100644",
+      "bytes": 29362
+    },
+    "upstream/pipelinescope/utils/__init__.py": {
+      "sha256": "ec2159a6c60a2cf02cd1330beb55342a65abba524a10db8637b867dbfe07fce5",
+      "mode": "100644",
+      "bytes": 146
+    },
+    "upstream/pipelinescope/utils/logger.py": {
+      "sha256": "b3de08b06050d28bdc604dae808394d4a73d00dba5401be5aedc28c332a70c21",
+      "mode": "100644",
+      "bytes": 499
+    },
+    "upstream/pyproject.toml": {
+      "sha256": "e376f14cd5a67328f2171e88c345e384b03c496434ee67056883bbd35a65647e",
+      "mode": "100644",
+      "bytes": 2130
+    },
+    "upstream/tests/__init__.py": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mode": "100644",
+      "bytes": 0
+    },
+    "upstream/tests/conftest.py": {
+      "sha256": "0e99ada430a27cb71d127cebb65b2eb2ce118ac9072ff00963d65b5d100a09cf",
+      "mode": "100644",
+      "bytes": 1453
+    },
+    "upstream/tests/test_analyzer.py": {
+      "sha256": "a60b1110b79d1d12b4bcf2116232551d7bbc1504a83f368456bfadbcc81da3f3",
+      "mode": "100644",
+      "bytes": 10134
+    },
+    "upstream/tests/test_config.py": {
+      "sha256": "52cb80d50c149e4ce0462b163f7f76c8bb7f14020512efb333639564ee59ee9a",
+      "mode": "100644",
+      "bytes": 7152
+    },
+    "upstream/tests/test_diff.py": {
+      "sha256": "87f2cc05163b4ed910ac659b48e40eb1c91ef5001b06f0ec70f61f6a10054f56",
+      "mode": "100644",
+      "bytes": 9019
+    },
+    "upstream/tests/test_entrypoint.py": {
+      "sha256": "c62e70f8a1fa59b07c7ab4f1e78adf29e1222ca4050adb43c879e10d63c145e8",
+      "mode": "100644",
+      "bytes": 7034
+    },
+    "upstream/tests/test_extrapolation.py": {
+      "sha256": "3d3cc7dc7ce0b521007ebfa6d9256a3f231b6641d42178f05c6d114449902965",
+      "mode": "100644",
+      "bytes": 7011
+    },
+    "upstream/tests/test_generator.py": {
+      "sha256": "77cb804c08518c44994263ed7a92663eadbd2244d0697c14004daa7c58929659",
+      "mode": "100644",
+      "bytes": 8631
+    },
+    "upstream/tests/test_logger.py": {
+      "sha256": "22851d8b882d880ff9c403fde38d9d09ec451e88a61df05515dee043f43ada16",
+      "mode": "100644",
+      "bytes": 1635
+    },
+    "upstream/tests/test_profiler.py": {
+      "sha256": "7e84caeb7b25dc4353de8b93ea1759ce75f3d8197402f1c864845c0d936a4fde",
+      "mode": "100644",
+      "bytes": 8078
+    },
+    "upstream/tests/test_resource_monitor.py": {
+      "sha256": "c9978c64492f5fb24cc3817c440afffe40a58c8cb1cc1618f591ee7bd7c112f7",
+      "mode": "100644",
+      "bytes": 4533
+    },
+    "upstream/tests/test_serializer.py": {
+      "sha256": "7c8fa2c0fa78d55aed213de837fad8ab968eb334fbb4747026502105d63b4c3a",
+      "mode": "100644",
+      "bytes": 8163
+    },
+    "upstream/tests/test_stats.py": {
+      "sha256": "1c9316cf562fe43e5fd6164e3300d0448af7f4a154fa7315b55b622fbeb0090a",
+      "mode": "100644",
+      "bytes": 7187
+    }
+  },
+  "excluded_git_metadata": [],
+  "history_repair": {
+    "pattern": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "approved_calendar": true,
+    "seed": 20251028,
+    "previous_main": "aef4633185bc86c077c6db6dfa13e7fdf0531bbe",
+    "daily_counts": {
+      "2025-06-12": 1,
+      "2025-06-13": 2,
+      "2025-06-14": 4,
+      "2025-06-15": 0,
+      "2025-06-16": 1,
+      "2025-06-17": 5,
+      "2025-06-18": 3,
+      "2025-06-19": 4,
+      "2025-06-20": 0,
+      "2025-06-21": 1,
+      "2025-06-22": 3,
+      "2025-06-23": 0,
+      "2025-06-24": 2,
+      "2025-06-25": 0,
+      "2025-06-26": 4,
+      "2025-06-27": 2,
+      "2025-06-28": 1,
+      "2025-06-29": 3
+    },
+    "description": "Reconstructed import timestamps; not original development dates."
+  }
+}
