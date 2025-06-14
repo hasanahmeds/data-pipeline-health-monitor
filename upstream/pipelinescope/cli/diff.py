@@ -78,3 +78,163 @@ def load_run_data(run_dir: Path) -> Tuple[str, Dict[str, dict]]:
 
     functions = {}
     for func in data.get("functions", []):
+        module = func.get("module", "unknown")
+        classname = func.get("classname")
+        funcname = func.get("funcname", "unknown")
+
+        if classname:
+            signature = f"{module}.{classname}.{funcname}"
+        else:
+            signature = f"{module}.{funcname}"
+
+        functions[signature] = func
+
+    return run_id, functions
+
+
+def compare_runs(output_dir: Path, run_ids: List[str] = None) -> str:
+    """
+    Compare multiple profiling runs.
+
+    Args:
+        output_dir: Output directory containing run folders
+        run_ids: List of run IDs to compare (None = all runs)
+
+    Returns:
+        HTML content for comparison report
+    """
+    output_path = Path(output_dir)
+
+    if not output_path.exists():
+        raise FileNotFoundError(f"Output directory not found: {output_dir}")
+
+    run_dirs = sorted(
+        [d for d in output_path.iterdir() if d.is_dir() and d.name.startswith("run_")]
+    )
+
+    if not run_dirs:
+        raise ValueError(f"No run directories found in {output_dir}")
+
+    if run_ids:
+        run_dirs = [d for d in run_dirs if d.name in run_ids]
+
+    if len(run_dirs) < 2:
+        raise ValueError("Need at least 2 runs to compare")
+
+    all_runs = {}
+    for run_dir in run_dirs:
+        run_id, functions = load_run_data(run_dir)
+        all_runs[run_id] = functions
+
+    comparisons = {}
+    for run_id, functions in all_runs.items():
+        for signature, metrics in functions.items():
+            if signature not in comparisons:
+                comparisons[signature] = FunctionComparison(signature)
+            comparisons[signature].add_run(run_id, metrics)
+
+    run_ids_sorted = sorted(all_runs.keys())
+
+    if len(run_ids_sorted) >= 2:
+        run1_id = run_ids_sorted[-2]
+        run2_id = run_ids_sorted[-1]
+    else:
+        run1_id = run_ids_sorted[0]
+        run2_id = run_ids_sorted[0]
+
+    improved = []
+    regressed = []
+    new_funcs = []
+    removed_funcs = []
+
+    for signature, comp in comparisons.items():
+        status, percent_change = comp.get_change(run1_id, run2_id)
+
+        if status == "improved":
+            improved.append((signature, percent_change, comp.runs[run2_id]))
+        elif status == "regressed":
+            regressed.append((signature, percent_change, comp.runs[run2_id]))
+        elif status == "new":
+            new_funcs.append((signature, comp.runs[run2_id]))
+        elif status == "removed":
+            removed_funcs.append((signature, comp.runs[run1_id]))
+
+    improved.sort(key=lambda x: x[1])
+    regressed.sort(key=lambda x: -x[1])
+    html = generate_comparison_html(run1_id, run2_id, improved, regressed, new_funcs, removed_funcs)
+
+    return html
+
+
+def generate_comparison_html(
+    run1_id: str,
+    run2_id: str,
+    improved: List[Tuple],
+    regressed: List[Tuple],
+    new_funcs: List[Tuple],
+    removed_funcs: List[Tuple],
+) -> str:
+    """Generate HTML for comparison report"""
+
+    timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+
+    parts = [
+        f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PipelineScope Comparison Report</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            padding: 20px;
+        }}
+        .container {{ max-width: 1200px; margin: 0 auto; }}
+        .header {{
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }}
+        h1 {{ font-size: 28px; margin-bottom: 10px; }}
+        .meta {{ color: #6c757d; font-size: 14px; }}
+        .section {{
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }}
+        .section-title {{
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }}
+        .improved {{ border-left: 4px solid #28a745; }}
+        .regressed {{ border-left: 4px solid #dc3545; }}
+        .new {{ border-left: 4px solid #007bff; }}
+        .removed {{ border-left: 4px solid #6c757d; }}
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }}
+        th {{
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+        }}
+        td {{
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+        }}
+        .badge {{
