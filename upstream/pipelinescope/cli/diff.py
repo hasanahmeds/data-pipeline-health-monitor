@@ -238,3 +238,163 @@ def generate_comparison_html(
             border-bottom: 1px solid #e9ecef;
         }}
         .badge {{
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }}
+        .badge-success {{ background: #d4edda; color: #155724; }}
+        .badge-danger {{ background: #f8d7da; color: #721c24; }}
+        .badge-primary {{ background: #cce5ff; color: #004085; }}
+        .badge-secondary {{ background: #e2e3e5; color: #383d41; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>PipelineScope Comparison Report</h1>
+            <div class="meta">
+                Comparing: {run1_id} → {run2_id}<br>
+                Generated: {timestamp}
+            </div>
+        </div>
+"""
+    ]
+
+    if improved:
+        parts.append(
+            f"""
+        <div class="section improved">
+            <div class="section-title">✓ Improved Functions ({len(improved)})</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Function</th>
+                        <th>Change</th>
+                        <th>New Time (ms)</th>
+                        <th>% of Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+"""
+        )
+        for sig, change, metrics in improved:
+            parts.append(
+                f"""
+                    <tr>
+                        <td><strong>{sig}</strong></td>
+                        <td><span class="badge badge-success">{change:.1f}%</span></td>
+                        <td>{metrics.get("projected_time_ms", 0):.2f}</td>
+                        <td>{metrics.get("percentage_of_total", 0):.2f}%</td>
+                    </tr>
+"""
+            )
+        parts.append(
+            """
+                </tbody>
+            </table>
+        </div>
+"""
+        )
+
+    if regressed:
+        parts.append(
+            f"""
+        <div class="section regressed">
+            <div class="section-title">⚠ Regressed Functions ({len(regressed)})</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Function</th>
+                        <th>Change</th>
+                        <th>New Time (ms)</th>
+                        <th>% of Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+"""
+        )
+        for sig, change, metrics in regressed:
+            parts.append(
+                f"""
+                    <tr>
+                        <td><strong>{sig}</strong></td>
+                        <td><span class="badge badge-danger">+{change:.1f}%</span></td>
+                        <td>{metrics.get("projected_time_ms", 0):.2f}</td>
+                        <td>{metrics.get("percentage_of_total", 0):.2f}%</td>
+                    </tr>
+"""
+            )
+        parts.append(
+            """
+                </tbody>
+            </table>
+        </div>
+"""
+        )
+
+    if new_funcs:
+        parts.append(
+            f"""
+        <div class="section new">
+            <div class="section-title">+ New Functions ({len(new_funcs)})</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Function</th>
+                        <th>Time (ms)</th>
+                        <th>% of Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+"""
+        )
+        for sig, metrics in new_funcs:
+            parts.append(
+                f"""
+                    <tr>
+                        <td><strong>{sig}</strong></td>
+                        <td>{metrics.get("projected_time_ms", 0):.2f}</td>
+                        <td>{metrics.get("percentage_of_total", 0):.2f}%</td>
+                    </tr>
+"""
+            )
+        parts.append(
+            """
+                </tbody>
+            </table>
+        </div>
+"""
+        )
+
+    if removed_funcs:
+        parts.append(
+            f"""
+        <div class="section removed">
+            <div class="section-title">- Removed Functions ({len(removed_funcs)})</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Function</th>
+                        <th>Previous Time (ms)</th>
+                    </tr>
+                </thead>
+                <tbody>
+"""
+        )
+        for sig, metrics in removed_funcs:
+            parts.append(
+                f"""
+                    <tr style="text-decoration: line-through; color: #6c757d;">
+                        <td>{sig}</td>
+                        <td>{metrics.get("projected_time_ms", 0):.2f}</td>
+                    </tr>
+"""
+            )
+        parts.append(
+            """
+                </tbody>
+            </table>
+        </div>
+"""
