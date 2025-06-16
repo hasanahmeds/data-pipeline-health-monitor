@@ -398,3 +398,69 @@ def generate_comparison_html(
             </table>
         </div>
 """
+        )
+
+    parts.append(
+        """
+    </div>
+</body>
+</html>
+"""
+    )
+
+    return "".join(parts)
+
+
+def main():
+    """CLI entry point for psdiff"""
+    parser = argparse.ArgumentParser(
+        description="Compare PipelineScope profiling runs",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Compare all runs in output directory
+  psdiff --output-dir .pipelinescope_output
+  
+  # Compare specific runs
+  psdiff --output-dir .pipelinescope_output --runs run_1234567890,run_1234567900
+  
+""",
+    )
+
+    parser.add_argument(
+        "--output-dir",
+        type=str,
+        default=".pipelinescope_output",
+        help="Output directory containing run folders (default: .pipelinescope_output)",
+    )
+
+    parser.add_argument(
+        "--runs", type=str, help="Comma-separated list of run IDs to compare (default: all runs)"
+    )
+
+    args = parser.parse_args()
+
+    run_ids = None
+    if args.runs:
+        run_ids = [r.strip() for r in args.runs.split(",")]
+
+    try:
+        html_content = compare_runs(Path(args.output_dir), run_ids=run_ids)
+
+        timestamp = int(time.time())
+        output_path = Path(args.output_dir) / f"comparison_{timestamp}.html"
+
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(html_content)
+
+        print(f"✓ Comparison report generated: {output_path}")
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return 1
+
+    return 0
+
+
+if __name__ == "__main__":
+    exit(main())
