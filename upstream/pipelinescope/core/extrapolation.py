@@ -38,3 +38,19 @@ def extrapolate(
 
     Returns:
         Dictionary mapping function keys to extrapolated statistics
+    """
+    scale_factor = config.expected_size / config.sample_size if config.sample_size > 0 else 1.0
+
+    extrapolated = {
+        func_key: ExtrapolatedStats(func_stats, scale_factor)
+        for func_key, func_stats in profiling_result.function_stats.items()
+    }
+
+    total_projected_self_time = sum(stats.projected_self_time_ms for stats in extrapolated.values())
+
+    if total_projected_self_time > 0:
+        for stats in extrapolated.values():
+            stats.percentage_of_total = (
+                stats.projected_self_time_ms / total_projected_self_time
+            ) * 100
+    return extrapolated
