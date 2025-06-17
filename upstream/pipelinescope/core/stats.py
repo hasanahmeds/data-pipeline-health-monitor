@@ -118,3 +118,78 @@ class FunctionKey:
         return False
 
     @property
+    def is_stdlib(self) -> bool:
+        return self._is_stdlib
+
+    @property
+    def stage(self) -> str:
+        return self._stage
+
+    @property
+    def display_name(self) -> str:
+        return self._display_name
+
+
+@dataclass
+class ResourceSnapshot:
+    """CPU/GPU metrics at a point in time"""
+
+    cpu_percent: float
+    memory_mb: float
+    gpu_utilization: List[float] = field(default_factory=list)
+    gpu_memory_mb: List[float] = field(default_factory=list)
+
+
+@dataclass
+class FunctionStats:
+    """Statistics for a single function"""
+
+    key: FunctionKey
+    call_count: int = 0
+    total_time_ms: float = 0.0
+    self_time_ms: float = 0.0
+    first_call_time: Optional[float] = None
+
+    avg_cpu_percent: float = 0.0
+    peak_memory_mb: float = 0.0
+    avg_gpu_utilization: List[float] = field(default_factory=list)
+    peak_gpu_memory_mb: List[float] = field(default_factory=list)
+
+    _active_calls: int = 0
+    _sample_counter: int = 0
+    _resource_samples: List[ResourceSnapshot] = field(default_factory=list)
+
+    @property
+    def avg_time_ms(self) -> float:
+        """Average time per call"""
+        return self.total_time_ms / self.call_count if self.call_count > 0 else 0.0
+
+
+@dataclass
+class CallEdge:
+    """Edge between caller and callee"""
+
+    caller: FunctionKey
+    callee: FunctionKey
+    call_count: int = 0
+    total_time_ms: float = 0.0
+
+    @property
+    def avg_time_ms(self) -> float:
+        """Average time per call"""
+        return self.total_time_ms / self.call_count if self.call_count > 0 else 0.0
+
+
+@dataclass
+class ProfilingResult:
+    """Complete profiling results"""
+
+    function_stats: Dict[FunctionKey, FunctionStats]
+    call_edges: Dict[tuple, CallEdge]
+    total_runtime_ms: float
+    start_timestamp: float
+    end_timestamp: float
+
+    def get_total_function_time(self) -> float:
+        """Sum of all function times (may exceed total_runtime_ms due to parallel calls)"""
+        return sum(stats.total_time_ms for stats in self.function_stats.values())
