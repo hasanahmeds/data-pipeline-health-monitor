@@ -38,3 +38,22 @@ class ResourceMonitor:
         memory_mb = 0.0
         gpu_util = []
         gpu_mem = []
+
+        try:
+            if self.enable_cpu:
+                cpu_percent = self.process.cpu_percent(interval=None)
+                memory_mb = float(f"{self.process.memory_info().rss / (1024 * 1024):.3f}")
+
+            if self.enable_gpu and self.gpu_available:
+                gpu_util = [gpu.load * 100 for gpu in self._gpu_devices]
+                gpu_mem = [gpu.memoryUsed for gpu in self._gpu_devices]
+
+        except Exception:
+            pass
+
+        return ResourceSnapshot(
+            cpu_percent=cpu_percent,
+            memory_mb=memory_mb,
+            gpu_utilization=gpu_util,
+            gpu_memory_mb=gpu_mem,
+        )
