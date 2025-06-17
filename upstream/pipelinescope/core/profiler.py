@@ -118,3 +118,112 @@ class Profiler:
 
         if self._should_ignore(func_key):
             return
+
+        stats = self.function_stats.get(func_key)
+        if stats is None:
+            stats = FunctionStats(key=func_key)
+            self.function_stats[func_key] = stats
+
+        if stats.first_call_time is None:
+            stats.first_call_time = time.time()
+
+        stats.call_count += 1
+        stats._active_calls += 1
+        start_time = time.time()
+        stats._sample_counter += 1
+
+        if stats._sample_counter % 100 == 0:
+            snapshot = self.resource_monitor.snapshot()
+            stats._resource_samples.append(snapshot)
+
+        if self.call_stack:
+            caller_key = self.call_stack[-1][0]
+            edge_key = (caller_key, func_key)
+            if edge_key not in self.call_edges:
+                self.call_edges[edge_key] = CallEdge(caller=caller_key, callee=func_key)
+            self.call_edges[edge_key].call_count += 1
+
+        self.call_stack.append((func_key, start_time))
+
+    def _on_return(self, frame):
+        if not self.call_stack:
+            return
+
+        func_key, start_time = self.call_stack.pop()
+
+        if func_key not in self.function_stats:
+            return
+
+        stats = self.function_stats[func_key]
+
+        elapsed_ms = (time.time() - start_time) * 1000
+        stats.total_time_ms += elapsed_ms
+
+        if self.call_stack:
+            caller_key = self.call_stack[-1][0]
+            edge_key = (caller_key, func_key)
+            if edge_key in self.call_edges:
+                self.call_edges[edge_key].total_time_ms += elapsed_ms
+
+        stats._active_calls -= 1
+
+        if stats._resource_samples:
+            snapshot = stats._resource_samples[-1]
+            stats.peak_memory_mb = max(stats.peak_memory_mb, snapshot.memory_mb)
+
+            if stats.avg_cpu_percent == 0.0:
+                stats.avg_cpu_percent = sum(s.cpu_percent for s in stats._resource_samples) / len(
+                    stats._resource_samples
+                )
+
+        stats._resource_samples.clear()
+
+    def _get_function_key(self, frame) -> FunctionKey:
+        """Extract function key from frame with class detection (cached)"""
+        code = frame.f_code
+
+        cache_key = (code.co_filename, code.co_name, code.co_firstlineno)
+
+        if cache_key in self._func_key_cache:
+            return self._func_key_cache[cache_key]
+
+        classname = None
+
+        if "self" in frame.f_locals:
+            try:
+                obj = frame.f_locals["self"]
+                classname = obj.__class__.__name__
+            except Exception:
+                pass
+
+        elif "cls" in frame.f_locals:
+            try:
+                cls = frame.f_locals["cls"]
+                classname = cls.__name__
+            except Exception:
+                pass
+
+        func_key = FunctionKey(
+            module=frame.f_globals.get("__name__", ""),
+            filename=code.co_filename,
+            funcname=code.co_name,
+            lineno=code.co_firstlineno,
+            classname=classname,
+        )
+
+        self._func_key_cache[cache_key] = func_key
+        return func_key
+
+    def _should_ignore(self, func_key: FunctionKey) -> bool:
+        """Check if function should be ignored"""
+        if self.config.collapse_stdlib and ("<" in func_key.filename or ">" in func_key.filename):
+            return True
+
+        if func_key.module.startswith("pipelinescope."):
+            return True
+
+        for ignored in self._ignore_set:
+            if ignored in func_key.filename or ignored in func_key.module:
+                return True
+
+        return False
