@@ -198,3 +198,25 @@ def aggregate_by_module(
 
         aggregates.append(agg)
 
+    aggregates.sort(key=lambda a: a.projected_time_ms, reverse=True)
+
+    return aggregates
+
+
+def get_all_functions(
+    profiling_result: ProfilingResult, extrapolated_stats: Dict[FunctionKey, ExtrapolatedStats]
+) -> List[HotspotFunction]:
+    all_functions = []
+
+    for func_key, func_stats in profiling_result.function_stats.items():
+        if not _should_include_function(func_key):
+            continue
+        if func_key not in extrapolated_stats:
+            continue
+
+        hotspot = HotspotFunction(func_key, func_stats, extrapolated_stats[func_key])
+        if hotspot.display_name:
+            all_functions.append(hotspot)
+
+    all_functions.sort(key=lambda h: h.projected_self_time_ms, reverse=True)
+    return all_functions
