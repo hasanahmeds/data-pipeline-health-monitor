@@ -1,0 +1,18 @@
+sample_size: 100
+expected_size: 1000000
+output_dir: .pipelinescope_output
+enable_dashboard: true
+dashboard_title: Simple Linear Pipeline
+min_time_threshold_ms: 0.5
+min_time_percentage: 0.1
+ignore_modules:
+  - venv
+  - site-packages
+  - .venv
+  - env
+collapse_stdlib: true
+enable_cpu_monitoring: true
+enable_gpu_monitoring: true
+enable_console_logging: false
+log_file: pipelinescope.log
+log_level: INFO
