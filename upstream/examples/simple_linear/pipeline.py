@@ -38,3 +38,16 @@ def run_linear_pipeline(iterations=100):
     """Execute linear pipeline: A -> B -> C -> D"""
     print(f"Starting linear pipeline with {iterations} iterations...")
 
+    data = stage_a(iterations)
+    print(f"  Stage A complete: {data}")
+
+    data = stage_b(data, iterations)
+    print(f"  Stage B complete: {data}")
+
+    data = stage_c(data, iterations)
+    print(f"  Stage C complete: {data}")
+
+    data = stage_d(data, iterations)
+    print(f"  Stage D complete: {data}")
+
+    return data
