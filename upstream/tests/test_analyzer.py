@@ -158,3 +158,120 @@ class TestModuleAggregation:
         )
 
         extrapolated = extrapolate(result, config)
+        aggregates = aggregate_by_module(result, extrapolated)
+
+        for i in range(len(aggregates) - 1):
+            assert aggregates[i].projected_time_ms >= aggregates[i + 1].projected_time_ms
+
+
+class TestGetAllFunctions:
+    def test_get_all_functions_basic(self):
+        """Test get_all_functions returns all functions"""
+        config = PipelineScopeConfig(sample_size=100, expected_size=1000)
+
+        stats_dict = {}
+        for i in range(5):
+            key = FunctionKey(module="test", filename="test.py", funcname=f"func{i}", lineno=i + 1)
+            stats = FunctionStats(key=key, call_count=10, total_time_ms=50.0, self_time_ms=50.0)
+            stats_dict[key] = stats
+
+        result = ProfilingResult(
+            function_stats=stats_dict,
+            call_edges={},
+            total_runtime_ms=250.0,
+            start_timestamp=0,
+            end_timestamp=1,
+        )
+
+        extrapolated = extrapolate(result, config)
+        all_funcs = get_all_functions(result, extrapolated)
+
+        assert len(all_funcs) == 5
+        assert all(isinstance(f, HotspotFunction) for f in all_funcs)
+
+    def test_get_all_functions_sorted(self):
+        """Test all functions are sorted by projected self time"""
+        config = PipelineScopeConfig(sample_size=100, expected_size=1000)
+
+        stats_dict = {}
+        for i in range(5):
+            key = FunctionKey(module="test", filename="test.py", funcname=f"func{i}", lineno=i + 1)
+            stats = FunctionStats(
+                key=key, call_count=10, total_time_ms=100.0 * (i + 1), self_time_ms=100.0 * (i + 1)
+            )
+            stats_dict[key] = stats
+
+        result = ProfilingResult(
+            function_stats=stats_dict,
+            call_edges={},
+            total_runtime_ms=1500.0,
+            start_timestamp=0,
+            end_timestamp=1,
+        )
+
+        extrapolated = extrapolate(result, config)
+        all_funcs = get_all_functions(result, extrapolated)
+
+        for i in range(len(all_funcs) - 1):
+            assert all_funcs[i].projected_self_time_ms >= all_funcs[i + 1].projected_self_time_ms
+
+
+class TestShouldIncludeFunction:
+    def test_should_include_user_function(self):
+        """Test user functions are included"""
+        key = FunctionKey(module="mymodule", filename="mymodule.py", funcname="my_func", lineno=1)
+        assert _should_include_function(key) is True
+
+    def test_should_exclude_stdlib(self):
+        """Test stdlib functions are excluded"""
+        key = FunctionKey(
+            module="random", filename="<frozen importlib._bootstrap>", funcname="_load", lineno=1
+        )
+        assert _should_include_function(key) is False
+
+    def test_should_exclude_unnamed_functions(self):
+        """Test unnamed functions are excluded"""
+        key = FunctionKey(module="test", filename="test.py", funcname="", lineno=1)
+        assert _should_include_function(key) is False
+
+
+class TestHotspotFunctionToDict:
+    def test_hotspot_to_dict_includes_metrics(self):
+        """Test HotspotFunction.to_dict includes all metrics"""
+        key = FunctionKey(module="test", filename="test.py", funcname="func", lineno=1)
+        stats = FunctionStats(
+            key=key,
+            call_count=100,
+            total_time_ms=500.0,
+            self_time_ms=400.0,
+            avg_cpu_percent=25.5,
+            peak_memory_mb=256.0,
+        )
+        extrapolated = ExtrapolatedStats(stats, 10.0)
+        hotspot = HotspotFunction(key, stats, extrapolated)
+
+        d = hotspot.to_dict()
+        assert "display_name" in d
+        assert "call_count" in d
+        assert "total_time_ms" in d
+        assert "projected_calls" in d
+        assert "percentage" in d
+        assert "avg_cpu_percent" in d
+        assert "peak_memory_mb" in d
+
+
+class TestModuleAggregateToDict:
+    def test_module_aggregate_to_dict(self):
+        """Test ModuleAggregate.to_dict"""
+        agg = ModuleAggregate("mymodule")
+        agg.function_count = 5
+        agg.total_calls = 50
+        agg.total_time_ms = 500.0
+        agg.projected_time_ms = 5000.0
+        agg.percentage_of_total = 25.0
+
+        d = agg.to_dict()
+        assert d["module_name"] == "mymodule"
+        assert d["function_count"] == 5
+        assert d["total_calls"] == 50
+        assert d["percentage"] == 25.0
