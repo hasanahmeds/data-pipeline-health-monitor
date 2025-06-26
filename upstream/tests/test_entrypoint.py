@@ -198,3 +198,40 @@ class TestPipelineProfilerMultipleRuns:
         dummy_func()
         profiler2.stop()
 
+        output_dir = tmp_path / ".pipelinescope_output"
+        run_dirs = sorted(output_dir.glob("run_*"))
+
+        assert len(run_dirs) >= 1
+
+
+class TestPipelineProfilerHtmlGeneration:
+    def test_profiler_generates_html(self, reset_global_profiler, tmp_path, monkeypatch):
+        """Test profiler generates HTML report"""
+        monkeypatch.chdir(tmp_path)
+
+        profiler = PipelineProfiler()
+        profiler.start()
+        dummy_func()
+        profiler.stop()
+
+        output_dir = tmp_path / ".pipelinescope_output"
+        run_dirs = list(output_dir.glob("run_*"))
+        assert len(run_dirs) > 0
+
+        html_file = run_dirs[0] / "summary.html"
+        assert html_file.exists()
+        assert html_file.stat().st_size > 0
+
+
+class TestPipelineProfilerAtexit:
+    def test_profiler_registers_atexit(self, reset_global_profiler, tmp_path, monkeypatch):
+        """Test profiler registers atexit handler"""
+        monkeypatch.chdir(tmp_path)
+
+        profiler = PipelineProfiler()
+        profiler.start()
+
+        assert hasattr(profiler, "_atexit_registered")
+
+        dummy_func()
+        profiler.stop()
