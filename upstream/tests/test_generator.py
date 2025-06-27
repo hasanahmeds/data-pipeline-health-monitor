@@ -238,3 +238,4 @@ class TestGenerateReportConfigValues:
         generate_static_report(result, extrapolated, config, output_path)
 
         content = output_path.read_text()
+        assert "Test Pipeline" in content
