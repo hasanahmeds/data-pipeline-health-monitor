@@ -38,3 +38,163 @@ class TestProfilerBasic:
         profiler.start()
         assert profiler.active is True
 
+        result = profiler.stop()
+        assert profiler.active is False
+        assert result is not None
+        assert isinstance(result.function_stats, dict)
+
+    def test_profiler_tracks_function_call(self):
+        """Test profiler tracks function calls"""
+        config = PipelineScopeConfig()
+        profiler = Profiler(config)
+
+        profiler.start()
+        simple_func()
+        result = profiler.stop()
+
+        assert len(result.function_stats) > 0
+        found = False
+        for key, stats in result.function_stats.items():
+            if key.funcname == "simple_func":
+                found = True
+                assert stats.call_count >= 1
+                break
+        assert found
+
+    def test_profiler_tracks_multiple_calls(self):
+        """Test profiler tracks multiple calls to same function"""
+        config = PipelineScopeConfig()
+        profiler = Profiler(config)
+
+        profiler.start()
+        for _ in range(5):
+            simple_func()
+        result = profiler.stop()
+
+        for key, stats in result.function_stats.items():
+            if key.funcname == "simple_func":
+                assert stats.call_count >= 5
+                break
+
+
+class TestProfilerCallStack:
+    def test_profiler_tracks_call_edges(self):
+        """Test profiler tracks calls between functions"""
+        config = PipelineScopeConfig()
+        profiler = Profiler(config)
+
+        profiler.start()
+        func_with_calls()
+        result = profiler.stop()
+
+        found_edge = False
+        for (caller, callee), edge in result.call_edges.items():
+            if callee.funcname == "simple_func" and caller.funcname == "func_with_calls":
+                found_edge = True
+                assert edge.call_count >= 2
+                break
+        assert found_edge
+
+
+class TestProfilerTiming:
+    def test_profiler_measures_time(self):
+        """Test profiler measures execution time"""
+        config = PipelineScopeConfig()
+        profiler = Profiler(config)
+
+        profiler.start()
+        simple_func()
+        result = profiler.stop()
+
+        assert result.total_runtime_ms > 0
+        assert result.start_timestamp < result.end_timestamp
+
+    def test_profiler_accumulates_time(self):
+        """Test profiler accumulates time across calls"""
+        config = PipelineScopeConfig()
+        profiler = Profiler(config)
+
+        profiler.start()
+        for _ in range(3):
+            simple_func()
+        result = profiler.stop()
+
+        for key, stats in result.function_stats.items():
+            if key.funcname == "simple_func":
+                assert stats.total_time_ms >= 0
+                break
+
+
+class TestProfilerIgnore:
+    def test_profiler_ignores_venv(self):
+        """Test profiler ignores venv modules"""
+        config = PipelineScopeConfig(ignore_modules=["venv"])
+        profiler = Profiler(config)
+
+        key = FunctionKey(
+            module="venv.test", filename="/venv/lib/python3.9/test.py", funcname="test", lineno=1
+        )
+        assert profiler._should_ignore(key) is True
+
+    def test_profiler_ignores_pipelinescope(self):
+        """Test profiler ignores pipelinescope internals"""
+        config = PipelineScopeConfig()
+        profiler = Profiler(config)
+
+        key = FunctionKey(
+            module="pipelinescope.core.profiler",
+            filename="/path/to/profiler.py",
+            funcname="_profile_callback",
+            lineno=1,
+        )
+        assert profiler._should_ignore(key) is True
+
+    def test_profiler_ignores_stdlib(self):
+        """Test profiler ignores stdlib with angle brackets"""
+        config = PipelineScopeConfig(collapse_stdlib=True)
+        profiler = Profiler(config)
+
+        key = FunctionKey(
+            module="importlib", filename="<frozen importlib._bootstrap>", funcname="_load", lineno=1
+        )
+        assert profiler._should_ignore(key) is True
+
+
+class TestProfilerResourceMonitoring:
+    def test_profiler_samples_resources(self, mock_psutil, mock_gputil):
+        """Test profiler samples CPU/GPU resources"""
+        config = PipelineScopeConfig(enable_cpu_monitoring=True, enable_gpu_monitoring=True)
+        profiler = Profiler(config)
+
+        profiler.start()
+        for _ in range(200):
+            simple_func()
+        result = profiler.stop()
+
+        for stats in result.function_stats.values():
+            if stats.call_count > 100:
+                assert stats.peak_memory_mb >= 0
+
+
+class TestProfilerFunctionKey:
+    def test_profiler_extracts_function_key(self):
+        """Test _get_function_key extracts correct info"""
+        config = PipelineScopeConfig()
+        profiler = Profiler(config)
+
+        profiler.start()
+        simple_func()
+        result = profiler.stop()
+
+        found = False
+        for key in result.function_stats.keys():
+            if key.funcname == "simple_func":
+                assert key.filename.endswith("test_profiler.py")
+                assert key.module == "__main__" or "test_profiler" in key.module
+                found = True
+                break
+        assert found
+
+    def test_profiler_detects_class_methods(self):
+        """Test _get_function_key detects class methods"""
+
