@@ -198,3 +198,67 @@ class TestProfilerFunctionKey:
     def test_profiler_detects_class_methods(self):
         """Test _get_function_key detects class methods"""
 
+        class TestClass:
+            def method(self):
+                return "result"
+
+        config = PipelineScopeConfig()
+        profiler = Profiler(config)
+
+        profiler.start()
+        obj = TestClass()
+        obj.method()
+        result = profiler.stop()
+
+        found = False
+        for key in result.function_stats.keys():
+            if key.funcname == "method" and key.classname == "TestClass":
+                found = True
+                break
+        assert found
+
+
+class TestProfilerEdgeCases:
+    def test_profiler_empty_result_on_no_calls(self):
+        """Test profiler returns valid result even with no tracked functions"""
+        config = PipelineScopeConfig()
+        profiler = Profiler(config)
+
+        profiler.start()
+        result = profiler.stop()
+
+        assert result is not None
+        assert isinstance(result.function_stats, dict)
+
+    def test_profiler_stop_without_start(self):
+        """Test stop without start returns None"""
+        config = PipelineScopeConfig()
+        profiler = Profiler(config)
+        result = profiler.stop()
+        assert result is None
+
+    def test_profiler_start_twice_is_safe(self):
+        """Test calling start twice is safe"""
+        config = PipelineScopeConfig()
+        profiler = Profiler(config)
+
+        profiler.start()
+        profiler.start()
+        result = profiler.stop()
+        assert result is not None
+
+
+class TestProfilerSelfTime:
+    def test_profiler_calculates_self_time(self):
+        """Test profiler calculates self_time correctly"""
+        config = PipelineScopeConfig()
+        profiler = Profiler(config)
+
+        profiler.start()
+        func_with_calls()
+        result = profiler.stop()
+
+        for key, stats in result.function_stats.items():
+            if key.funcname == "func_with_calls":
+                assert stats.self_time_ms >= 0
+                assert stats.self_time_ms <= stats.total_time_ms
