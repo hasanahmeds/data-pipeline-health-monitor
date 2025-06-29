@@ -78,3 +78,44 @@ class TestResourceMonitorMultipleSnapshots:
     def test_snapshot_consistency(self, mock_psutil, mock_gputil):
         """Test snapshot values are consistent"""
         monitor = ResourceMonitor(enable_cpu=True, enable_gpu=True)
+
+        snapshots = [monitor.snapshot() for _ in range(5)]
+
+        for snapshot in snapshots:
+            assert snapshot.cpu_percent == 25.5
+
+
+class TestResourceMonitorExceptionHandling:
+    def test_monitor_handles_cpu_error(self, monkeypatch):
+        """Test monitor handles CPU monitoring error gracefully"""
+
+        def failing_process(*args, **kwargs):
+            raise Exception("Process creation failed")
+
+        monkeypatch.setattr("pipelinescope.core.resource_monitor.psutil.Process", failing_process)
+
+        monitor = ResourceMonitor(enable_cpu=True, enable_gpu=False)
+        snapshot = monitor.snapshot()
+        assert snapshot.cpu_percent == 0.0
+
+    def test_monitor_handles_gpu_error(self, monkeypatch):
+        """Test monitor handles GPU monitoring error gracefully"""
+
+        def failing_gpu(*args, **kwargs):
+            raise Exception("GPU query failed")
+
+        monkeypatch.setattr("pipelinescope.core.resource_monitor.GPUtil.getGPUs", failing_gpu)
+
+        monitor = ResourceMonitor(enable_cpu=False, enable_gpu=True)
+        assert monitor.gpu_available is False
+        snapshot = monitor.snapshot()
+        assert len(snapshot.gpu_utilization) == 0
+
+
+class TestResourceMonitorMemoryCalculation:
+    def test_memory_conversion(self, mock_psutil):
+        """Test memory is converted correctly from bytes to MB"""
+        monitor = ResourceMonitor(enable_cpu=True, enable_gpu=False)
+        snapshot = monitor.snapshot()
+
+        assert snapshot.memory_mb == 512.0
